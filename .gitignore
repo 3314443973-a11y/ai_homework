@@ -1,23 +1,26 @@
-# 虚拟环境文件夹
+# Python 与 Jupyter
 .venv/
 venv/
 env/
-
-# Python缓存文件
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# 日志、模型权重
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+# 凭据
+.env
+.env.*
+!.env.example
+# 生成文件
 *.log
 *.pkl
+*.joblib
 *.h5
 *.ckpt
-
-# 系统垃圾文件
+outputs/
+temp/
+# 编辑器和系统
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
-
-# 自己的私有文档，不上传到仓库
-*.docx
+~$*
