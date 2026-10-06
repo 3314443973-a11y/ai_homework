@@ -4,13 +4,14 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 # 1.读取训练csv与测试csv
-df_train = pd.read_csv("train_250.csv")
+df_train = pd.read_csv(r"D:\kuyly\code\self_program\ai\data\project\train_250.csv")
 X_raw1 = df_train["text"]
 y_train = df_train["label"]
 
-df_test = pd.read_csv("test_50.csv")
+df_test = pd.read_csv(r"D:\kuyly\code\self_program\ai\data\project\test_50.csv")
 X_raw2 = df_test["text"]
 y_test = df_test["label"]
 
@@ -57,3 +58,7 @@ for index, row in df_mistakes.iterrows():
 cm = confusion_matrix(y_test, preds)
 print("=====混淆矩阵=====")
 print(cm)
+
+# 8.输出csv结果
+ROOT = Path(__file__).resolve().parent.parent
+df_result.to_csv(ROOT / "model_result" / "nb_test_results.csv", index=False, encoding="utf-8-sig")
