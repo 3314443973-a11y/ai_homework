@@ -22,7 +22,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
-
+#定位文件地址，确定标签和随即生成数
 ROOT = Path(__file__).resolve().parents[1]
 TRAIN_CSV = ROOT / "data" / "project" / "train_250.csv"
 MODEL_DIR = ROOT / "models"
@@ -33,14 +33,16 @@ REQUIRED_COLUMNS = ("text", "label", "urgency", "department")
 DEV_RANDOM_STATE = 6
 
 
+#制作模型的组装函数
 def make_model() -> Pipeline:
     """Keep text vectorization and classification together."""
     return Pipeline([
-        ("tfidf", TfidfVectorizer(analyzer="char", ngram_range=(2, 3))),
+        ("tfidf", TfidfVectorizer(analyzer="char", ngram_range=(1, 3))),
         ("classifier", LogisticRegression(max_iter=1000)),
     ])
 
 
+#获取训练数据
 def load_training_data() -> tuple[pd.Series, pd.Series, str]:
     if not TRAIN_CSV.is_file():
         raise FileNotFoundError(f"找不到项目训练数据：{TRAIN_CSV}")
@@ -64,7 +66,7 @@ def load_training_data() -> tuple[pd.Series, pd.Series, str]:
         )
     return texts, labels, data_hash
 
-
+#生成模型joblib和json以及跑测试数据（测试数据是基于250条出的正确率，没用最后的50条
 def main() -> None:
     texts, labels, data_hash = load_training_data()
     X_dev_train, X_dev_valid, y_dev_train, y_dev_valid = train_test_split(
@@ -77,8 +79,8 @@ def main() -> None:
     correct = int((predictions == y_dev_valid.to_numpy()).sum())
     dev_accuracy = float(accuracy_score(y_dev_valid, predictions))
 
-    # The saved candidate learns from all 250 rows in the training file.
-    # Its independent final-test accuracy has not been measured here.
+    # joblib和predict调用的是使用250条训练的模型
+    # 没有用独立的测试集测试过
     candidate_model = make_model()
     candidate_model.fit(texts, labels)
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
@@ -100,7 +102,7 @@ def main() -> None:
             "accuracy": dev_accuracy,
         },
         "score_note": "开发准确率属于内部划分模型，不能作为全量重训候选模型的独立测试成绩。",
-        "features": {"analyzer": "char", "ngram_range": [2, 3]},
+        "features": {"analyzer": "char", "ngram_range": [1, 3]},
         "classifier": "LogisticRegression(max_iter=1000)",
         "python": platform.python_version(),
         "packages": {
@@ -120,5 +122,6 @@ def main() -> None:
     print(f"版本记录：{INFO_PATH}")
 
 
+#确保只有在终端输入python -m src.train才会重新训练模型
 if __name__ == "__main__":
     main()
