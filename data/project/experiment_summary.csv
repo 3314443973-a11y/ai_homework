@@ -1,0 +1,5 @@
+﻿experiment_id,description,feature_count,accuracy,macro_f1,mistake_count,train_seconds,predict_seconds
+char_2_3,字级 TF-IDF，2-3 gram,920,0.78,0.775456,11,0.012968,0.001327
+char_2_4,字级 TF-IDF，2-4 gram,1037,0.76,0.74896,12,0.017081,0.001675
+char_1_2,字级 TF-IDF，1-2 gram,1164,0.76,0.736928,12,0.014512,0.001349
+word_1_2,词级 TF-IDF，1-2 gram,543,0.68,0.625214,16,0.442726,0.00414
