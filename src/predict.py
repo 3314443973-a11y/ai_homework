@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
 from pathlib import Path
 
 from joblib import load
 
-
+#确认存储路径
 MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "category_model_dev.joblib"
 
 
-@lru_cache(maxsize=1)
+#调用joblib中存的模型
 def _load_model():
     if not MODEL_PATH.is_file():
         raise FileNotFoundError(
@@ -20,6 +19,7 @@ def _load_model():
     return load(MODEL_PATH)
 
 
+#调用模型本体
 def predict_category(text: str) -> str:
     """Return one of the six category names for a non-empty complaint."""
     if not isinstance(text, str):
