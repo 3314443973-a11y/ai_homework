@@ -2,7 +2,7 @@
 
 使用中文字符 TF-IDF 与逻辑回归，学习将校园诉求分为宿舍设施、校园网络、食堂餐饮、教学设施、校园安全、其他六类。
 
-当前仓库包含项目数据和基础目录，src 目录预留用于后续核心功能代码；尚未提供完整 Web 平台、训练或预测实现及最终测试成绩。
+当前仓库已有成员 A 的开发版训练脚本和类别预测函数；完整 Web 平台和最终测试成绩仍待团队后续完成。
 
 ## 目录
 
@@ -11,8 +11,14 @@ campus-request-classification/
 ├── README.md
 ├── .gitignore
 ├── requirements.txt
-├── src/                   # 后续核心功能代码
-│   └── .gitkeep            # 保留空目录，加入代码后可删除
+├── src/
+│   ├── __init__.py         # 使 src 可作为 Python 包导入
+│   ├── train.py            # 开发验证、全量训练与模型保存
+│   └── predict.py          # 给 C 导入的 predict_category(text)
+├── models/
+│   ├── README.md           # 模型说明
+│   ├── category_model_dev.joblib  # 已训练的开发版模型
+│   └── model_info_dev.json # 数据、参数与版本记录
 └── data/
     ├── README.md
     └── project/
@@ -40,17 +46,30 @@ macOS / Linux 激活环境：
 source .venv/bin/activate
 ```
 
-目前尚无可运行的功能代码，依赖清单暂留空。后续成员添加实际依赖后，可执行：
+安装依赖：
 
 ```bash
 python -m pip install -r requirements.txt
 ```
 
+仓库已包含开发版模型 `models/category_model_dev.joblib`；安装依赖后即可调用预测函数。若要重新训练，在仓库根目录运行 `python -m src.train`。该命令只读取 `data/project/train_250.csv`：先用随机种子 **6** 做 200/50 的内部开发验证，再用全部 250 条训练数据重训候选模型，更新模型文件和 `model_info_dev.json`。保留的 `test_50.csv` 不参与这一步。
+
+训练完成后，在仓库根目录调用预测函数：
+
+```python
+from src.predict import predict_category
+
+category = predict_category("宿舍空调不制冷")
+print(category)  # 六类中的一个，例如：宿舍设施
+```
+
+`predict_category(text)` 接收非空字符串，返回类别字符串；空白输入抛出 `ValueError`，非字符串抛出 `TypeError`。它只负责类别，不返回紧急度、部门或摘要。成员 C 从 GitHub 获取仓库并安装依赖后即可调用。模型是开发版候选产物，训练脚本和数据一并保留，便于复现；仅加载来源可信的模型文件，并使用 `requirements.txt` 中的依赖版本。
+
 ## 后续代码存放与团队整合
 
-**所有成员后续交付的核心功能 Python 代码统一放入 `src/`。** 按功能命名文件，不再套“成员A”“成员B”等个人文件夹。数据继续放在 `data/`。`src/.gitkeep` 用于保留空目录，加入代码后可删除。
+**所有成员后续交付的核心功能 Python 代码统一放入 `src/`。** 按功能命名文件，不再套“成员A”“成员B”等个人文件夹。数据继续放在 `data/`。
 
-按现有团队分工，代码交付与整合安排如下；下列文件名是建议，尚未创建：
+按现有团队分工，代码交付与整合安排如下；A 的两份脚本已创建，其他文件名仍是建议：
 
 | 成员 | 负责内容 | 建议代码位置 |
 | --- | --- | --- |
@@ -70,15 +89,16 @@ python -m pip install -r requirements.txt
 
 - `train_250.csv` 含 250 条数据，供训练与开发验证使用。
 - `test_50.csv` 含 50 条数据，保留用于最终测试，不用于学习词表或选择参数。
+- 当前字符 2～3 gram TF-IDF + Logistic Regression 方案在随机种子 6 的内部 200/50 划分上答对 33/50（66%）；这属于开发验证模型。保存的候选模型已用全部 250 条重训，不能把 66% 当成它的独立测试成绩。
 - 开发验证准确率不代表最终测试成绩。当前未发布最终测试指标。
 - CSV 的 `urgency` 与 `department` 是附加标注字段，当前分类练习的目标是 `label`。
 
-## 本次整理范围
+## 学习资料与代码交付
 
-保留现有项目数据及基础配置，预留 src 代码目录；目录统一使用英文名称。原工作目录中的学习资料、个人学习计划、Word 方案、PDF 清单、讲义生成工具、另一标注版本的练习数据、数据C、缓存与 Git 历史未打包。
+个人 Jupyter 讲义、学习计划和练习中间产物不属于项目运行依赖。成员 A 的正式代码入口是本仓库中的 `src/train.py` 和 `src/predict.py`；成员 C 集成时从仓库根目录导入 `from src.predict import predict_category`。
 
 数据来源与授权信息尚未在现有文件中明确，详见 `data/README.md`。本整理版未指定开源许可证。
 
-## 上传方式
+## 与现有 GitHub 仓库合并
 
-将本目录作为仓库根目录，使 GitHub 首页直接显示本 README、依赖清单和代码目录。不要将外层 `github-upload` 一起作为项目目录上传。本次整理仅创建本地文件夹，没有推送到远程仓库。
+GitHub 仓库首页应直接显示本 README、`requirements.txt`、`src/` 和 `data/`。向已有仓库同步时，将本目录**里面的文件**按相同路径合并到仓库根目录，不要上传外层 `github-upload/` 或额外套一层 `campus-request-classification/`。保留其他成员已经提交的脚本和数据；同步成员 A 的 `src/train.py`、`src/predict.py`、`src/__init__.py`、`models/README.md`、`models/category_model_dev.joblib` 和 `models/model_info_dev.json`，并更新根目录的 README、依赖清单和忽略规则。
