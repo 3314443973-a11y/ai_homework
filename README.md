@@ -15,6 +15,7 @@ campus-request-classification/
 │   ├── __init__.py         # 使 src 可作为 Python 包导入——A
 │   ├── train_nb.py         # 使用了朴素贝叶斯（nb），与A的成果对比，选出更好的模型——C
 │   ├── train.py            # 开发验证、全量训练与模型保存——A
+|   ├── app.py              # Streamlit 页面入口——C
 │   └── predict.py          # 给 C 导入的 predict_category(text)——A
 ├── models/
 │   ├── README.md           # 模型说明——A
