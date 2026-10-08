@@ -12,13 +12,13 @@ campus-request-classification/
 ├── .gitignore
 ├── requirements.txt
 ├── src/
-│   ├── __init__.py         # 使 src 可作为 Python 包导入
-│   ├── train.py            # 开发验证、全量训练与模型保存
-│   └── predict.py          # 给 C 导入的 predict_category(text)
+│   ├── __init__.py         # 使 src 可作为 Python 包导入——A
+│   ├── train.py            # 开发验证、全量训练与模型保存——A
+│   └── predict.py          # 给 C 导入的 predict_category(text)——A
 ├── models/
-│   ├── README.md           # 模型说明
-│   ├── category_model_dev.joblib  # 已训练的开发版模型
-│   └── model_info_dev.json # 数据、参数与版本记录
+│   ├── README.md           # 模型说明——A
+│   ├── category_model_dev.joblib  # 已训练的开发版模型——A
+│   └── model_info_dev.json # 数据、参数与版本记录——A
 └── data/
     ├── README.md
     └── project/
@@ -89,16 +89,5 @@ print(category)  # 六类中的一个，例如：宿舍设施
 
 - `train_250.csv` 含 250 条数据，供训练与开发验证使用。
 - `test_50.csv` 含 50 条数据，保留用于最终测试，不用于学习词表或选择参数。
-- 当前字符 2～3 gram TF-IDF + Logistic Regression 方案在随机种子 6 的内部 200/50 划分上答对 33/50（66%）；这属于开发验证模型。保存的候选模型已用全部 250 条重训，不能把 66% 当成它的独立测试成绩。
+- 当前字符 1～3 gram TF-IDF + Logistic Regression 方案在随机种子 6 的内部 200/50 划分上答对 38/50（76%）；这属于开发验证模型。保存的候选模型已用全部 250 条重训，不能把 76% 当成它的独立测试成绩。
 - 开发验证准确率不代表最终测试成绩。当前未发布最终测试指标。
-- CSV 的 `urgency` 与 `department` 是附加标注字段，当前分类练习的目标是 `label`。
-
-## 学习资料与代码交付
-
-个人 Jupyter 讲义、学习计划和练习中间产物不属于项目运行依赖。成员 A 的正式代码入口是本仓库中的 `src/train.py` 和 `src/predict.py`；成员 C 集成时从仓库根目录导入 `from src.predict import predict_category`。
-
-数据来源与授权信息尚未在现有文件中明确，详见 `data/README.md`。本整理版未指定开源许可证。
-
-## 与现有 GitHub 仓库合并
-
-GitHub 仓库首页应直接显示本 README、`requirements.txt`、`src/` 和 `data/`。向已有仓库同步时，将本目录**里面的文件**按相同路径合并到仓库根目录，不要上传外层 `github-upload/` 或额外套一层 `campus-request-classification/`。保留其他成员已经提交的脚本和数据；同步成员 A 的 `src/train.py`、`src/predict.py`、`src/__init__.py`、`models/README.md`、`models/category_model_dev.joblib` 和 `models/model_info_dev.json`，并更新根目录的 README、依赖清单和忽略规则。
