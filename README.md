@@ -13,12 +13,16 @@ campus-request-classification/
 ├── requirements.txt
 ├── src/
 │   ├── __init__.py         # 使 src 可作为 Python 包导入——A
+│   ├── train_nb.py         # 使用了朴素贝叶斯（nb），与A的成果对比，选出更好的模型——C
 │   ├── train.py            # 开发验证、全量训练与模型保存——A
 │   └── predict.py          # 给 C 导入的 predict_category(text)——A
 ├── models/
 │   ├── README.md           # 模型说明——A
 │   ├── category_model_dev.joblib  # 已训练的开发版模型——A
 │   └── model_info_dev.json # 数据、参数与版本记录——A
+├── model_result/
+│   ├── member_a_test_result.csv  #模型用测试集跑出的结果——A
+│   └── nb_test_results.csv # C跑出的训练结果——C
 └── data/
     ├── README.md
     └── project/

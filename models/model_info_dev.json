@@ -3,15 +3,10 @@
   "training_source": "data/project/train_250.csv",
   "training_sha256": "5a9afb86f013f348d444af64243a5652874e6367542802a15ab46636c3729165",
   "candidate_training_rows": 250,
-  "development_split": {
-    "train": 200,
-    "validation": 50,
-    "random_state": 6
-  },
-  "development_validation": {
-    "correct": 38,
+  "test_result": {
+    "correct": 37,
     "total": 50,
-    "accuracy": 0.76
+    "accuracy": 0.74
   },
   "score_note": "开发准确率属于内部划分模型，不能作为全量重训候选模型的独立测试成绩。",
   "features": {
