@@ -25,6 +25,7 @@ from sklearn.pipeline import Pipeline
 #定位文件地址，确定标签和随即生成数
 ROOT = Path(__file__).resolve().parents[1]
 TRAIN_CSV = ROOT / "data" / "project" / "train_250.csv"
+TEST_CSV = ROOT / "data" / "project" / "test_50.csv"
 MODEL_DIR = ROOT / "models"
 MODEL_PATH = MODEL_DIR / "category_model_dev.joblib"
 INFO_PATH = MODEL_DIR / "model_info_dev.json"
@@ -66,39 +67,63 @@ def load_training_data() -> tuple[pd.Series, pd.Series, str]:
         )
     return texts, labels, data_hash
 
+#获取测试数据
+def load_test_data() -> tuple[pd.Series, pd.Series, str]:
+    if not TEST_CSV.is_file():
+        raise FileNotFoundError(f"找不到项目训练数据：{TEST_CSV}")
+
+    data_hash_test = hashlib.sha256(TEST_CSV.read_bytes()).hexdigest()
+    frame_test = pd.read_csv(TEST_CSV, encoding="utf-8-sig", dtype=str, keep_default_na=False)
+    missing_test = [column for column in REQUIRED_COLUMNS if column not in frame_test.columns]
+    if missing_test:
+        raise ValueError(f"训练文件缺少字段：{missing_test}")
+
+    texts_test = frame_test["text"].str.strip()
+    labels_test = frame_test["label"].str.strip()
+    empty_rows_test = frame_test.index[texts_test.eq("")].tolist()
+    invalid_rows_test = frame_test.index[~labels_test.isin(LABELS)].tolist()
+    duplicate_rows_test = frame_test.index[texts_test.ne("") & texts_test.duplicated(keep=False)].tolist()
+    if empty_rows_test or invalid_rows_test or duplicate_rows_test:
+        raise ValueError(
+            "训练数据需要先复核："
+            f"空文本索引={empty_rows_test}，无效类别索引={invalid_rows_test}，"
+            f"完全重复文本索引={duplicate_rows_test}"
+        )
+    return texts_test, labels_test, data_hash_test
+
 #生成模型joblib和json以及跑测试数据（测试数据是基于250条出的正确率，没用最后的50条
 def main() -> None:
     texts, labels, data_hash = load_training_data()
+    texts_test, labels_test, data_hash_test = load_test_data()
     X_dev_train, X_dev_valid, y_dev_train, y_dev_valid = train_test_split(
         texts, labels, test_size=0.2, random_state=DEV_RANDOM_STATE, stratify=labels
     )
 
-    validation_model = make_model()
-    validation_model.fit(X_dev_train, y_dev_train)
-    predictions = validation_model.predict(X_dev_valid)
-    correct = int((predictions == y_dev_valid.to_numpy()).sum())
-    dev_accuracy = float(accuracy_score(y_dev_valid, predictions))
-
-    # joblib和predict调用的是使用250条训练的模型
-    # 没有用独立的测试集测试过
     candidate_model = make_model()
     candidate_model.fit(texts, labels)
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(candidate_model, MODEL_PATH)
+    predictions = candidate_model.predict(texts_test)
+    correct = int((predictions == labels_test.to_numpy()).sum())
+    dev_accuracy = float(accuracy_score(labels_test, predictions))
+    preview = pd.DataFrame({
+    "原训练表索引": texts_test.index,
+    "诉求": texts_test.to_numpy(),
+    "真实类别": labels_test.to_numpy(),
+    "预测类别": predictions,
+    })
+    preview.to_csv(ROOT / "model_result" / "member_a_test_results.csv", index=False, encoding="utf-8-sig")
 
+#生成json
     info = {
         "status": "开发版候选模型；尚未在保留测试集上评估",
         "training_source": "data/project/train_250.csv",
         "training_sha256": data_hash,
         "candidate_training_rows": len(texts),
-        "development_split": {
-            "train": len(X_dev_train),
-            "validation": len(X_dev_valid),
-            "random_state": DEV_RANDOM_STATE,
-        },
-        "development_validation": {
+      
+        "test_result": {
             "correct": correct,
-            "total": len(X_dev_valid),
+            "total": len(texts_test),
             "accuracy": dev_accuracy,
         },
         "score_note": "开发准确率属于内部划分模型，不能作为全量重训候选模型的独立测试成绩。",
@@ -116,9 +141,8 @@ def main() -> None:
     INFO_PATH.write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(f"训练数据：{TRAIN_CSV}（{len(texts)} 条）")
-    print(f"开发划分：{len(X_dev_train)} 条训练 / {len(X_dev_valid)} 条验证；随机种子 {DEV_RANDOM_STATE}")
-    print(f"开发验证：{correct}/{len(X_dev_valid)}，准确率 {dev_accuracy:.1%}")
-    print(f"已保存 250 条训练数据重训的开发版模型：{MODEL_PATH}")
+    print(f"开发验证：{correct}/{len(texts_test)}，准确率 {dev_accuracy:.1%}")
+    print(f"已保存 250 条训练数据训的开发版模型：{MODEL_PATH}")
     print(f"版本记录：{INFO_PATH}")
 
 
