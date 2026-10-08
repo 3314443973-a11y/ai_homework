@@ -17,6 +17,8 @@ campus-request-classification/
 │   ├── train.py            # 开发验证、全量训练与模型保存——A
 |   ├── app.py              # Streamlit 页面入口——C
 │   └── predict.py          # 给 C 导入的 predict_category(text)——A
+│   └── urgency.py          # 紧急度规则，开发使用——B
+│   └── department.py       # 部门映射规则，开发使用——B
 ├── models/
 │   ├── README.md           # 模型说明——A
 │   ├── category_model_dev.joblib  # 已训练的开发版模型——A
