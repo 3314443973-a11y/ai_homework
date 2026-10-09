@@ -15,6 +15,9 @@ ai_homework/
 ├── requirements.txt
 ├── src/
 │   ├── __init__.py         # 使 src 可作为 Python 包导入——A
+|   ├── pages/              # Streamlit 页面模块——C
+        ├──students_pages.py# 学生端页面——C
+        └──admin_pages.py   # 管理员端页面——C         
 │   ├── train_nb.py         # 使用了朴素贝叶斯（nb），与A的成果对比，选出更好的模型——C
 │   ├── train.py            # 开发验证、全量训练与模型保存——A
 |   ├── app.py              # Streamlit 页面入口——C
