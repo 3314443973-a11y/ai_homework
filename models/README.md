@@ -1,10 +1,10 @@
 # 模型文件
 
-仓库包含可直接用于联调的 `category_model_dev.joblib` 和 `model_info_dev.json`。安装根目录 `requirements.txt` 中的依赖后，即可通过 `from src.predict import predict_category` 调用。需要重新生成时，在仓库根目录运行 `python -m src.train`。
+仓库包含可直接用于联调的 `label_model_dev.joblib` 和 `model_info_dev.json`。安装根目录 `requirements.txt` 中的依赖后，即可通过 `from src.predict import predict_label` 调用。需要重新生成时，在仓库根目录运行 `python -m src.train`。
 
-`category_model_dev.joblib` 是使用训练文件全部 250 条数据生成的**开发版**模型，供成员 C 联调。`model_info_dev.json` 记录训练数据指纹、随机种子、软件版本及内部开发验证结果。两者均纳入这次交付，使队友下载代码后无需先训练。模型仍可从仓库内的训练脚本和数据重新生成。
+`label_model_dev.joblib` 是使用训练文件全部 250 条数据生成的**开发版**模型，供成员 C 联调。`model_info_dev.json` 记录训练与测试文件指纹、软件版本及当前 50 条测试数据上的结果（37/50）。两者均纳入这次交付，使队友下载代码后无需先训练。调用方法与结果说明见 [`第 5 天交付说明`](../docs/member_a_day5_handoff.md)。模型仍可从仓库内的训练脚本和数据重新生成。
 
-在最终的joblib也就是C调用的是用250条数据完全训练出的模型
+当前 C 调用的 `.joblib` 是用全部 250 条训练数据拟合的模型。
 
 `joblib` 加载时会反序列化 Python 对象，只加载来源可信的文件；使用与 `requirements.txt` 一致的依赖版本。若之后改变训练代码、训练数据或依赖版本，应重新生成并同步模型与版本记录。
 

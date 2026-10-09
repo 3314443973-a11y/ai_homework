@@ -4,10 +4,12 @@
 
 当前仓库已有成员 A 的开发版训练脚本和类别预测函数；完整 Web 平台和最终测试成绩仍待团队后续完成。
 
+成员 A 当前模型的交付文件、调用方法和第 5 天测试记录见 [`docs/member_a_day5_handoff.md`](docs/member_a_day5_handoff.md)。
+
 ## 目录
 
 ```text
-campus-request-classification/
+ai_homework/
 ├── README.md
 ├── .gitignore
 ├── requirements.txt
@@ -15,14 +17,19 @@ campus-request-classification/
 │   ├── __init__.py         # 使 src 可作为 Python 包导入——A
 │   ├── train_nb.py         # 使用了朴素贝叶斯（nb），与A的成果对比，选出更好的模型——C
 │   ├── train.py            # 开发验证、全量训练与模型保存——A
-│   └── predict.py          # 给 C 导入的 predict_category(text)——A
+|   ├── app.py              # Streamlit 页面入口——C
+│   └── predict.py          # 给 C 导入的 predict_label(text)——A
+│   └── urgency.py          # 紧急度规则，开发使用——B
+│   └── department.py       # 部门映射规则，开发使用——B
 ├── models/
 │   ├── README.md           # 模型说明——A
-│   ├── category_model_dev.joblib  # 已训练的开发版模型——A
+│   ├── label_model_dev.joblib  # 已训练的开发版模型——A
 │   └── model_info_dev.json # 数据、参数与版本记录——A
 ├── model_result/
-│   ├── member_a_test_result.csv  #模型用测试集跑出的结果——A
+│   ├── member_a_test_results.csv # 模型用测试集跑出的结果——A
 │   └── nb_test_results.csv # C跑出的训练结果——C
+├── docs/
+│   └── member_a_day5_handoff.md # A 的第 5 天交付与联调说明
 └── data/
     ├── README.md
     └── project/
@@ -56,18 +63,18 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-仓库已包含开发版模型 `models/category_model_dev.joblib`；安装依赖后即可调用预测函数。若要重新训练，在仓库根目录运行 `python -m src.train`。该命令只读取 `data/project/train_250.csv`：先用随机种子 **6** 做 200/50 的内部开发验证，再用全部 250 条训练数据重训候选模型，更新模型文件和 `model_info_dev.json`。保留的 `test_50.csv` 不参与这一步。
+仓库已包含开发版模型 `models/label_model_dev.joblib`；安装依赖后即可调用预测函数，正常预测无需训练。若要重新生成当前模型及结果表，在仓库根目录运行 `python -m src.train`。当前脚本用 `data/project/train_250.csv` 的全部 250 条拟合模型，再读取 `data/project/test_50.csv` 的 50 条进行预测，更新模型文件、`model_info_dev.json` 和 `model_result/member_a_test_results.csv`。
 
 训练完成后，在仓库根目录调用预测函数：
 
 ```python
-from src.predict import predict_category
+from src.predict import predict_label
 
-category = predict_category("宿舍空调不制冷")
-print(category)  # 六类中的一个，例如：宿舍设施
+label = predict_label("宿舍空调不制冷")
+print(label)  # 六类中的一个，例如：宿舍设施
 ```
 
-`predict_category(text)` 接收非空字符串，返回类别字符串；空白输入抛出 `ValueError`，非字符串抛出 `TypeError`。它只负责类别，不返回紧急度、部门或摘要。成员 C 从 GitHub 获取仓库并安装依赖后即可调用。模型是开发版候选产物，训练脚本和数据一并保留，便于复现；仅加载来源可信的模型文件，并使用 `requirements.txt` 中的依赖版本。
+`predict_label(text)` 接收非空字符串，返回类别字符串；空白输入抛出 `ValueError`，非字符串抛出 `TypeError`。它只负责类别，不返回紧急度、部门或摘要。成员 C 从 GitHub 获取仓库并安装依赖后即可调用，按 `analyze_contract.md` 将类别放入最终结果的 `label` 字段。模型是开发版候选产物，训练脚本和数据一并保留，便于复现；仅加载来源可信的模型文件，并使用 `requirements.txt` 中的依赖版本。
 
 ## 后续代码存放与团队整合
 
@@ -92,6 +99,6 @@ print(category)  # 六类中的一个，例如：宿舍设施
 ## 实验约定
 
 - `train_250.csv` 含 250 条数据，供训练与开发验证使用。
-- `test_50.csv` 含 50 条数据，保留用于最终测试，不用于学习词表或选择参数。
-- 当前字符 1～3 gram TF-IDF + Logistic Regression 方案在随机种子 6 的内部 200/50 划分上答对 38/50（76%）；这属于开发验证模型。保存的候选模型已用全部 250 条重训，不能把 76% 当成它的独立测试成绩。
-- 开发验证准确率不代表最终测试成绩。当前未发布最终测试指标。
+- `test_50.csv` 含 50 条数据，未用于这份模型的 `fit()`；它已用于观察当前模型的测试结果。
+- 当前字符 1～3 gram TF-IDF + Logistic Regression 模型用全部 250 条训练数据拟合后，在这 50 条测试数据上答对 **37/50（74%）**，有 13 条误判。结果表见 `model_result/member_a_test_results.csv`。
+- 这 50 条的错误已经被查看；若后续据此选特征或参数，同一测试集上的新分数不应称为全新独立测试成绩。旧内部开发验证数字与当前模型测试数字不要混用。
