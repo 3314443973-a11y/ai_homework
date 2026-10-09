@@ -1,7 +1,7 @@
-"""Train the development category model from data/project/train_250.csv.
+"""Train the development label model and evaluate it on the recorded test set.
 
 Run from the repository root with: python -m src.train
-The reserved test_50.csv is not read here.
+Only train_250.csv is used by fit(); test_50.csv is used by predict().
 """
 
 from __future__ import annotations
@@ -19,19 +19,18 @@ import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
-#定位文件地址，确定标签和随即生成数
+# 统一使用 label 命名；路径以本文件为基准，与终端当前目录无关。
 ROOT = Path(__file__).resolve().parents[1]
 TRAIN_CSV = ROOT / "data" / "project" / "train_250.csv"
 TEST_CSV = ROOT / "data" / "project" / "test_50.csv"
 MODEL_DIR = ROOT / "models"
-MODEL_PATH = MODEL_DIR / "category_model_dev.joblib"
+MODEL_PATH = MODEL_DIR / "label_model_dev.joblib"
 INFO_PATH = MODEL_DIR / "model_info_dev.json"
+RESULT_PATH = ROOT / "model_result" / "member_a_test_results.csv"
 LABELS = ("宿舍设施", "校园网络", "食堂餐饮", "教学设施", "校园安全", "其他")
 REQUIRED_COLUMNS = ("text", "label", "urgency", "department")
-DEV_RANDOM_STATE = 6
 
 
 #制作模型的组装函数
@@ -70,13 +69,13 @@ def load_training_data() -> tuple[pd.Series, pd.Series, str]:
 #获取测试数据
 def load_test_data() -> tuple[pd.Series, pd.Series, str]:
     if not TEST_CSV.is_file():
-        raise FileNotFoundError(f"找不到项目训练数据：{TEST_CSV}")
+        raise FileNotFoundError(f"找不到项目测试数据：{TEST_CSV}")
 
     data_hash_test = hashlib.sha256(TEST_CSV.read_bytes()).hexdigest()
     frame_test = pd.read_csv(TEST_CSV, encoding="utf-8-sig", dtype=str, keep_default_na=False)
     missing_test = [column for column in REQUIRED_COLUMNS if column not in frame_test.columns]
     if missing_test:
-        raise ValueError(f"训练文件缺少字段：{missing_test}")
+        raise ValueError(f"测试文件缺少字段：{missing_test}")
 
     texts_test = frame_test["text"].str.strip()
     labels_test = frame_test["label"].str.strip()
@@ -85,48 +84,49 @@ def load_test_data() -> tuple[pd.Series, pd.Series, str]:
     duplicate_rows_test = frame_test.index[texts_test.ne("") & texts_test.duplicated(keep=False)].tolist()
     if empty_rows_test or invalid_rows_test or duplicate_rows_test:
         raise ValueError(
-            "训练数据需要先复核："
+            "测试数据需要先复核："
             f"空文本索引={empty_rows_test}，无效类别索引={invalid_rows_test}，"
             f"完全重复文本索引={duplicate_rows_test}"
         )
     return texts_test, labels_test, data_hash_test
 
-#生成模型joblib和json以及跑测试数据（测试数据是基于250条出的正确率，没用最后的50条
 def main() -> None:
-    texts, labels, data_hash = load_training_data()
-    texts_test, labels_test, data_hash_test = load_test_data()
-    X_dev_train, X_dev_valid, y_dev_train, y_dev_valid = train_test_split(
-        texts, labels, test_size=0.2, random_state=DEV_RANDOM_STATE, stratify=labels
-    )
+    train_texts, train_labels, train_hash = load_training_data()
+    test_texts, test_labels, test_hash = load_test_data()
 
-    candidate_model = make_model()
-    candidate_model.fit(texts, labels)
+    label_model = make_model()
+    label_model.fit(train_texts, train_labels)
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    joblib.dump(candidate_model, MODEL_PATH)
-    predictions = candidate_model.predict(texts_test)
-    correct = int((predictions == labels_test.to_numpy()).sum())
-    dev_accuracy = float(accuracy_score(labels_test, predictions))
-    preview = pd.DataFrame({
-    "原训练表索引": texts_test.index,
-    "诉求": texts_test.to_numpy(),
-    "真实类别": labels_test.to_numpy(),
-    "预测类别": predictions,
-    })
-    preview.to_csv(ROOT / "model_result" / "member_a_test_results.csv", index=False, encoding="utf-8-sig")
+    joblib.dump(label_model, MODEL_PATH)
 
-#生成json
+    predictions = label_model.predict(test_texts)
+    correct = int((predictions == test_labels.to_numpy()).sum())
+    test_accuracy = float(accuracy_score(test_labels, predictions))
+    results = pd.DataFrame({
+        "测试表索引": test_texts.index,
+        "诉求": test_texts.to_numpy(),
+        "真实类别": test_labels.to_numpy(),
+        "预测类别": predictions,
+    })
+    RESULT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    results.to_csv(RESULT_PATH, index=False, encoding="utf-8-sig", lineterminator="\n")
+
     info = {
-        "status": "开发版候选模型；尚未在保留测试集上评估",
+        "status": "开发版 label 模型；已在指定的 50 条测试数据上评估",
+        "model_file": "models/label_model_dev.joblib",
+        "output_field": "label",
         "training_source": "data/project/train_250.csv",
-        "training_sha256": data_hash,
-        "candidate_training_rows": len(texts),
-      
+        "training_sha256": train_hash,
+        "candidate_training_rows": len(train_texts),
+        "test_source": "data/project/test_50.csv",
+        "test_sha256": test_hash,
+        "test_result_path": "model_result/member_a_test_results.csv",
         "test_result": {
             "correct": correct,
-            "total": len(texts_test),
-            "accuracy": dev_accuracy,
+            "total": len(test_texts),
+            "accuracy": test_accuracy,
         },
-        "score_note": "开发准确率属于内部划分模型，不能作为全量重训候选模型的独立测试成绩。",
+        "score_note": "模型用全部训练数据拟合后在这份测试集上得到此结果；若之后据此调整方案，同一测试集不再是全新独立检验。",
         "features": {"analyzer": "char", "ngram_range": [1, 3]},
         "classifier": "LogisticRegression(max_iter=1000)",
         "python": platform.python_version(),
@@ -138,14 +138,16 @@ def main() -> None:
             "scipy": scipy.__version__,
         },
     }
-    INFO_PATH.write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
+    with INFO_PATH.open("w", encoding="utf-8", newline="\n") as stream:
+        stream.write(json.dumps(info, ensure_ascii=False, indent=2) + "\n")
 
-    print(f"训练数据：{TRAIN_CSV}（{len(texts)} 条）")
-    print(f"开发验证：{correct}/{len(texts_test)}，准确率 {dev_accuracy:.1%}")
-    print(f"已保存 250 条训练数据训的开发版模型：{MODEL_PATH}")
+    print(f"训练数据：{TRAIN_CSV}（{len(train_texts)} 条）")
+    print(f"已用测试数据：{TEST_CSV}（{len(test_texts)} 条）")
+    print(f"本次测试：{correct}/{len(test_texts)}，准确率 {test_accuracy:.1%}")
+    print(f"已保存 label 模型：{MODEL_PATH}")
+    print(f"逐条结果：{RESULT_PATH}")
     print(f"版本记录：{INFO_PATH}")
 
 
-#确保只有在终端输入python -m src.train才会重新训练模型
 if __name__ == "__main__":
     main()

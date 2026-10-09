@@ -1,14 +1,19 @@
 {
-  "status": "开发版候选模型；尚未在保留测试集上评估",
+  "status": "开发版 label 模型；已在指定的 50 条测试数据上评估",
+  "model_file": "models/label_model_dev.joblib",
+  "output_field": "label",
   "training_source": "data/project/train_250.csv",
   "training_sha256": "5a9afb86f013f348d444af64243a5652874e6367542802a15ab46636c3729165",
   "candidate_training_rows": 250,
+  "test_source": "data/project/test_50.csv",
+  "test_sha256": "885bc6cb8ac7c000f1566fc09c6470d5b935523079a5af09c44e74caf7b078c5",
+  "test_result_path": "model_result/member_a_test_results.csv",
   "test_result": {
     "correct": 37,
     "total": 50,
     "accuracy": 0.74
   },
-  "score_note": "开发准确率属于内部划分模型，不能作为全量重训候选模型的独立测试成绩。",
+  "score_note": "模型用全部训练数据拟合后在这份测试集上得到此结果；若之后据此调整方案，同一测试集不再是全新独立检验。",
   "features": {
     "analyzer": "char",
     "ngram_range": [
