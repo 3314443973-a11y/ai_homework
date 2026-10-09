@@ -21,6 +21,9 @@ ai_homework/
 │   └── predict.py          # 给 C 导入的 predict_label(text)——A
 │   └── urgency.py          # 紧急度规则，开发使用——B
 │   └── department.py       # 部门映射规则，开发使用——B
+│   └── verify_environment.py #环境自检程序，开发使用——B
+│   └── evaluate_urgency.py # 验证紧急度，开发不用——B
+│   └── urgency_tfidf_experiment #字级对于紧急度的影响——B
 ├── models/
 │   ├── README.md           # 模型说明——A
 │   ├── label_model_dev.joblib  # 已训练的开发版模型——A
