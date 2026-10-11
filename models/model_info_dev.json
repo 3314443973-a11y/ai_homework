@@ -22,12 +22,12 @@
     ]
   },
   "classifier": "LogisticRegression(max_iter=1000)",
-  "python": "3.11.16",
+  "python": "3.13.13",
   "packages": {
     "pandas": "3.0.6",
     "scikit-learn": "1.9.1",
     "joblib": "1.6.0",
-    "numpy": "2.4.6",
-    "scipy": "1.17.1"
+    "numpy": "2.5.3",
+    "scipy": "1.18.1"
   }
 }
