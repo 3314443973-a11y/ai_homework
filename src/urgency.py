@@ -1,8 +1,16 @@
-"""Explainable urgency rules for campus complaints."""
+"""Explainable urgency classification for campus complaints."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
+
+import joblib
+
+
+MODEL_PATH = Path(__file__).resolve().parents[1] / "model" / "complaint_urgency_classifier.joblib"
+VALID_URGENCIES = {"高", "中", "低"}
 
 
 @dataclass(frozen=True)
@@ -129,8 +137,8 @@ def _first_active_term(text: str, terms: tuple[str, ...]) -> str | None:
     return None
 
 
-def analyze_urgency(text: str) -> UrgencyResult:
-    """Classify urgency as high, medium, or low with an explanation."""
+def _analyze_rules(text: str) -> UrgencyResult:
+    """Apply deterministic business rules before the statistical fallback."""
     if not isinstance(text, str) or not text.strip():
         raise ValueError("text不能为空")
     normalized = "".join(text.strip().split())
@@ -217,6 +225,61 @@ def analyze_urgency(text: str) -> UrgencyResult:
         reason="文本未命中明确高风险或低风险规则，按一般影响处理并建议复核",
         matched_rule="default_medium",
         needs_review=True,
+    )
+
+
+@lru_cache(maxsize=1)
+def _load_model():
+    """Load the optional fallback model once; rule-only mode remains usable."""
+    try:
+        artifact = joblib.load(MODEL_PATH)
+        pipeline = artifact["pipeline"]
+        classes = set(pipeline.named_steps["classifier"].classes_)
+        if classes != VALID_URGENCIES:
+            return None
+        return pipeline
+    except Exception:
+        # A missing, damaged, or version-incompatible model must not disable
+        # the deterministic safety rules used by the public API.
+        return None
+
+
+def _predict_with_model(text: str) -> tuple[str, float] | None:
+    model = _load_model()
+    if model is None:
+        return None
+    probabilities = model.predict_proba([text])[0]
+    classes = model.named_steps["classifier"].classes_
+    best_index = int(probabilities.argmax())
+    return str(classes[best_index]), float(probabilities[best_index])
+
+
+def analyze_urgency(text: str) -> UrgencyResult:
+    """Classify urgency, keeping critical rules ahead of the trained model."""
+    rule_result = _analyze_rules(text)
+    if rule_result.matched_rule != "default_medium":
+        return rule_result
+
+    normalized = "".join(text.strip().split())
+    prediction = _predict_with_model(normalized)
+    if prediction is None:
+        return rule_result
+
+    urgency, confidence = prediction
+    # A statistical high prediction alone is not enough to invent a safety
+    # emergency. Explicit high-risk cases have already been handled by rules.
+    if urgency == "高" and confidence < 0.80:
+        return rule_result
+    # Accept low only with moderate confidence to reduce the old default-medium
+    # bias without turning unclear complaints into low priority too freely.
+    if urgency == "低" and confidence < 0.45:
+        return rule_result
+
+    return UrgencyResult(
+        urgency=urgency,
+        reason=f"规则未覆盖，TF-IDF模型预测置信度为{confidence:.1%}",
+        matched_rule="tfidf_model_fallback",
+        needs_review=confidence < 0.65,
     )
 
 
