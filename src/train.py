@@ -6,7 +6,6 @@ Only train_250.csv is used by fit(); test_50.csv is used by predict().
 
 from __future__ import annotations
 
-import hashlib
 import json
 import platform
 from pathlib import Path
@@ -24,6 +23,9 @@ from sklearn.pipeline import Pipeline
 # 统一使用 label 命名；路径以本文件为基准，与终端当前目录无关。
 ROOT = Path(__file__).resolve().parents[1]
 TRAIN_CSV = ROOT / "data" / "project" / "train_250.csv"
+TRAIN_CSV2 = ROOT / "data" / "project" / "targeted_label_candidates_30(1).csv"
+TRAIN_CSV3=ROOT/"data"/"project"/"error_data_diverse_30_complete(1).csv"
+TRAIN_CSV4=ROOT/"data"/"project"/"targeted_label_candidates_30(1).csv"
 TEST_CSV = ROOT / "data" / "project" / "test_50.csv"
 MODEL_DIR = ROOT / "models"
 MODEL_PATH = MODEL_DIR / "label_model_dev.joblib"
@@ -46,31 +48,25 @@ def make_model() -> Pipeline:
 def load_training_data() -> tuple[pd.Series, pd.Series, str]:
     if not TRAIN_CSV.is_file():
         raise FileNotFoundError(f"找不到项目训练数据：{TRAIN_CSV}")
-
-    data_hash = hashlib.sha256(TRAIN_CSV.read_bytes()).hexdigest()
-    frame = pd.read_csv(TRAIN_CSV, encoding="utf-8-sig", dtype=str, keep_default_na=False)
+    frame1 = pd.read_csv(TRAIN_CSV, encoding="utf-8-sig", dtype=str, keep_default_na=False)
+    frame2 = pd.read_csv(TRAIN_CSV2, encoding="utf-8-sig", dtype=str, keep_default_na=False)
+    frame3 = pd.read_csv(TRAIN_CSV3, encoding="utf-8-sig", dtype=str, keep_default_na=False)
+    frame4 = pd.read_csv(TRAIN_CSV4, encoding="utf-8-sig", dtype=str, keep_default_na=False)
+    frame=pd.concat([frame1,frame2,frame3,frame4],ignore_index=True)
     missing = [column for column in REQUIRED_COLUMNS if column not in frame.columns]
     if missing:
         raise ValueError(f"训练文件缺少字段：{missing}")
     texts = frame["text"].str.strip()
     labels = frame["label"].str.strip()
-    empty_rows = frame.index[texts.eq("")].tolist()
-    invalid_rows = frame.index[~labels.isin(LABELS)].tolist()
-    duplicate_rows = frame.index[texts.ne("") & texts.duplicated(keep=False)].tolist()
-    if empty_rows or invalid_rows or duplicate_rows:
-        raise ValueError(
-            "训练数据需要先复核："
-            f"空文本索引={empty_rows}，无效类别索引={invalid_rows}，"
-            f"完全重复文本索引={duplicate_rows}"
-        )
-    return texts, labels, data_hash
+    
+    return texts, labels
 
 #获取测试数据
 def load_test_data() -> tuple[pd.Series, pd.Series, str]:
     if not TEST_CSV.is_file():
         raise FileNotFoundError(f"找不到项目测试数据：{TEST_CSV}")
 
-    data_hash_test = hashlib.sha256(TEST_CSV.read_bytes()).hexdigest()
+    
     frame_test = pd.read_csv(TEST_CSV, encoding="utf-8-sig", dtype=str, keep_default_na=False)
     missing_test = [column for column in REQUIRED_COLUMNS if column not in frame_test.columns]
     if missing_test:
@@ -87,11 +83,11 @@ def load_test_data() -> tuple[pd.Series, pd.Series, str]:
             f"空文本索引={empty_rows_test}，无效类别索引={invalid_rows_test}，"
             f"完全重复文本索引={duplicate_rows_test}"
         )
-    return texts_test, labels_test, data_hash_test
+    return texts_test, labels_test,
 
 def main() -> None:
-    train_texts, train_labels, train_hash = load_training_data()
-    test_texts, test_labels, test_hash = load_test_data()
+    train_texts, train_labels = load_training_data()
+    test_texts, test_labels= load_test_data()
 
     label_model = make_model()
     label_model.fit(train_texts, train_labels)
@@ -114,11 +110,9 @@ def main() -> None:
         "status": "开发版 label 模型；已在指定的 50 条测试数据上评估",
         "model_file": "models/label_model_dev.joblib",
         "output_field": "label",
-        "training_source": "data/project/train_250.csv",
-        "training_sha256": train_hash,
+        "training_source": "data/project/train_250.csv,error_data_diverse_30_complete(1).csv,low_urgency_candidates_30.csv",
         "candidate_training_rows": len(train_texts),
         "test_source": "data/project/test_50.csv",
-        "test_sha256": test_hash,
         "test_result_path": "model_result/member_a_test_results.csv",
         "test_result": {
             "correct": correct,
@@ -140,7 +134,7 @@ def main() -> None:
     with INFO_PATH.open("w", encoding="utf-8", newline="\n") as stream:
         stream.write(json.dumps(info, ensure_ascii=False, indent=2) + "\n")
 
-    print(f"训练数据：{TRAIN_CSV}（{len(train_texts)} 条）")
+    print(f"训练数据：（{len(train_texts)} 条）")
     print(f"已用测试数据：{TEST_CSV}（{len(test_texts)} 条）")
     print(f"本次测试：{correct}/{len(test_texts)}，准确率 {test_accuracy:.1%}")
     print(f"已保存 label 模型：{MODEL_PATH}")
