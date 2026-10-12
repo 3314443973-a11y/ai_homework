@@ -23,7 +23,8 @@ ai/
 │   ├── evaluate_urgency.py            # 紧急度规则评估 -B
 │   ├── tfidf_experiment.py            # 分类特征对照实验 -B
 │   ├── urgency_tfidf_experiment.py    # 紧急度 TF-IDF 对照实验 -B
-│   └── verify_environment.py          # 旧环境自检 
+│   └── verify_environment.py          # 旧环境自检
+│   ├── test_rules.py                 # 规则自检程序，不参与训练 -B 
 ├── data/
 │   ├── README.md
 │   ├── history.csv                   # 页面历史记录 -C
