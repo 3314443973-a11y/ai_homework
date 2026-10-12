@@ -3,7 +3,7 @@
   "model_file": "models/label_model_dev.joblib",
   "output_field": "label",
   "training_source": "data/project/train_250.csv",
-  "training_sha256": "5a9afb86f013f348d444af64243a5652874e6367542802a15ab46636c3729165",
+  "training_sha256": "24f6268df66013b3e00f5ad9643c0eab18d387bf83cffce4c723c1ec4ba142a8",
   "candidate_training_rows": 250,
   "test_source": "data/project/test_50.csv",
   "test_sha256": "885bc6cb8ac7c000f1566fc09c6470d5b935523079a5af09c44e74caf7b078c5",
@@ -22,12 +22,12 @@
     ]
   },
   "classifier": "LogisticRegression(max_iter=1000)",
-  "python": "3.13.13",
+  "python": "3.11.16",
   "packages": {
     "pandas": "3.0.6",
     "scikit-learn": "1.9.1",
     "joblib": "1.6.0",
-    "numpy": "2.5.3",
-    "scipy": "1.18.1"
+    "numpy": "2.4.6",
+    "scipy": "1.17.1"
   }
 }

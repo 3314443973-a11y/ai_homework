@@ -52,7 +52,6 @@ def load_training_data() -> tuple[pd.Series, pd.Series, str]:
     missing = [column for column in REQUIRED_COLUMNS if column not in frame.columns]
     if missing:
         raise ValueError(f"训练文件缺少字段：{missing}")
-
     texts = frame["text"].str.strip()
     labels = frame["label"].str.strip()
     empty_rows = frame.index[texts.eq("")].tolist()
