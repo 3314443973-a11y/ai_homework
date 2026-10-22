@@ -1,0 +1,59 @@
+{
+  "test_rows": 50,
+  "accuracy": 1.0,
+  "macro_f1": 1.0,
+  "actual_distribution": {
+    "高": 13,
+    "中": 27,
+    "低": 10
+  },
+  "predicted_distribution": {
+    "高": 13,
+    "中": 27,
+    "低": 10
+  },
+  "classification_report": {
+    "高": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 13
+    },
+    "中": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 27
+    },
+    "低": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 10
+    }
+  },
+  "confusion_matrix_labels": [
+    "高",
+    "中",
+    "低"
+  ],
+  "confusion_matrix": [
+    [
+      13,
+      0,
+      0
+    ],
+    [
+      0,
+      27,
+      0
+    ],
+    [
+      0,
+      0,
+      10
+    ]
+  ],
+  "mismatch_count": 0,
+  "review_count": 16
+}
