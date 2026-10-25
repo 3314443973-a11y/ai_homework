@@ -32,6 +32,7 @@ ai/
 │       ├── README.md                 # 历史交接说明
 │       ├── train_250.csv             # 250 条训练数据
 │       └── test_50.csv               # 50 条测试数据
+│       └── long_text_51.csv          # 51 条长文本数据 -B
 ├── models/
 │   ├── README.md
 │   ├── label_model_dev.joblib        # 当前 predict.py 实际加载的模型
