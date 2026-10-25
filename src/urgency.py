@@ -27,12 +27,29 @@ NEGATIONS = ("没有", "没", "未", "并无", "不是", "不再", "不存在", 
 HIGH_RISK_TERMS = (
     "明火", "着火", "起火", "火灾", "冒烟", "火花",
     "漏电", "触电", "电线裸露", "裸露电线", "电源线破损",
-    "持刀", "持棍", "暴力威胁", "打架", "袭击",
+    "持刀", "持棍", "暴力威胁", "打架", "袭击", "攻击同学", "追咬",
     "食物中毒", "食品中毒", "集体呕吐", "多人呕吐", "多人腹泻",
     "严重过敏", "呼吸困难", "昏迷", "晕倒", "大量出血",
     "安全出口堵塞", "消防通道堵塞", "消防通道上锁",
     "井盖破损", "护栏松动", "扶手松动", "差点摔倒", "已经摔倒",
     "随时可能掉落", "即将坠落", "有坠落风险", "差点撞到行人",
+)
+
+# Actual animal-caused injuries to a person are health risks. These patterns
+# deliberately include a person context so an injured animal is not treated as
+# an injured student or staff member.
+PERSON_ANIMAL_INJURY_PATTERNS = (
+    ("同学", "咬伤"),
+    ("同学", "抓伤"),
+    ("学生", "咬伤"),
+    ("学生", "抓伤"),
+    ("老师", "咬伤"),
+    ("老师", "抓伤"),
+    ("有人", "被咬"),
+    ("有人", "被抓伤"),
+    ("被猫", "咬"),
+    ("被猫", "抓伤"),
+    ("被狗", "咬"),
 )
 
 # A lack of essential protection can be a health threat even without an
@@ -103,14 +120,42 @@ SERVICE_FAILURE_TERMS = (
 
 MEDIUM_IMPACT_TERMS = (
     "排队太久", "一直没有空位", "无法预约", "持续没有空位", "严重影响",
+    "已经影响正常使用", "过敏原", "提示欠费", "偶尔滴水",
 )
 
 LOW_INTENT_TERMS = (
     "建议", "希望增加", "希望延长", "希望优化", "希望改进", "可以增加",
-    "能不能增加", "体验", "选择太少", "偏咸", "声音很大", "速度比较慢",
+    "能不能增加", "能不能多", "体验", "选择太少", "偏咸", "声音很大", "速度比较慢",
     "偶尔", "目前还能", "仍能使用", "还能使用", "不影响使用",
     "逐步更换", "标识不清楚", "指示不够清楚", "排队的人太多",
     "出水速度异常", "仍没有改善",
+)
+
+MINOR_COSMETIC_PATTERNS = (
+    ("使用说明", "磨损"),
+    ("操作说明", "磨损"),
+    ("说明标签", "磨损"),
+    ("说明贴纸", "磨损"),
+    ("外壳", "划痕"),
+)
+
+LIMITED_LOW_IMPACT_PATTERNS = (
+    ("失物招领", "能不能集中"),
+    ("快递柜", "经常满"),
+    ("部分座位", "收不到", "网络"),
+    ("洗手液", "没有补充"),
+    ("有个椅子", "坏了"),
+)
+
+# Appearance-only observations about campus animals are low priority when no
+# person is threatened or injured.
+MINOR_ANIMAL_OBSERVATION_PATTERNS = (
+    ("猫", "太肥"),
+    ("猫", "太胖"),
+    ("猫", "很肥"),
+    ("猫", "很胖"),
+    ("狗", "太肥"),
+    ("狗", "太胖"),
 )
 
 
@@ -132,6 +177,8 @@ def _is_negated(text: str, term: str, window: int = 6) -> bool:
 
 def _first_active_term(text: str, terms: tuple[str, ...]) -> str | None:
     for term in terms:
+        if term == "不能" and "能不能" in text:
+            continue
         if term in text and not _is_negated(text, term):
             return term
     return None
@@ -159,6 +206,14 @@ def _analyze_rules(text: str) -> UrgencyResult:
                 matched_rule="uncontrolled_faucet_leak",
             )
 
+    for required_terms in PERSON_ANIMAL_INJURY_PATTERNS:
+        if all(term in normalized for term in required_terms):
+            return UrgencyResult(
+                urgency="高",
+                reason="动物已造成人员受伤，存在明确健康风险",
+                matched_rule="person_injured_by_animal",
+            )
+
     for required_terms in CRITICAL_OPERATION_PATTERNS:
         if all(term in normalized for term in required_terms):
             return UrgencyResult(
@@ -183,6 +238,38 @@ def _analyze_rules(text: str) -> UrgencyResult:
             matched_rule="direct_safety_or_health_threat",
         )
 
+    medium_term = next((term for term in MEDIUM_IMPACT_TERMS if term in normalized), None)
+    if medium_term:
+        return UrgencyResult(
+            urgency="中",
+            reason=f"持续影响正常服务获取：{medium_term}",
+            matched_rule="continued_service_impact",
+        )
+
+    for required_terms in MINOR_ANIMAL_OBSERVATION_PATTERNS:
+        if all(term in normalized for term in required_terms):
+            return UrgencyResult(
+                urgency="低",
+                reason="仅描述校园动物外观，未发现师生安全或健康风险",
+                matched_rule="minor_animal_observation",
+            )
+
+    for required_terms in MINOR_COSMETIC_PATTERNS:
+        if all(term in normalized for term in required_terms):
+            return UrgencyResult(
+                urgency="低",
+                reason="仅有说明或外观轻微磨损，未影响基本使用",
+                matched_rule="minor_cosmetic_wear",
+            )
+
+    for required_terms in LIMITED_LOW_IMPACT_PATTERNS:
+        if all(term in normalized for term in required_terms):
+            return UrgencyResult(
+                urgency="低",
+                reason="影响范围有限且未影响基本使用",
+                matched_rule="limited_low_impact_issue",
+            )
+
     service_term = _first_active_term(normalized, SERVICE_FAILURE_TERMS)
     if service_term and any(term in normalized for term in TIME_CRITICAL_SERVICE_CONTEXTS):
         return UrgencyResult(
@@ -203,14 +290,6 @@ def _analyze_rules(text: str) -> UrgencyResult:
             urgency="中",
             reason=f"影响正常学习生活：{service_term}",
             matched_rule="service_failure",
-        )
-
-    medium_term = next((term for term in MEDIUM_IMPACT_TERMS if term in normalized), None)
-    if medium_term:
-        return UrgencyResult(
-            urgency="中",
-            reason=f"持续影响正常服务获取：{medium_term}",
-            matched_rule="continued_service_impact",
         )
 
     if any(term in normalized for term in LOW_INTENT_TERMS):
@@ -272,7 +351,7 @@ def analyze_urgency(text: str) -> UrgencyResult:
         return rule_result
     # Accept low only with moderate confidence to reduce the old default-medium
     # bias without turning unclear complaints into low priority too freely.
-    if urgency == "低" and confidence < 0.45:
+    if urgency == "低" and confidence < 0.40:
         return rule_result
 
     return UrgencyResult(
