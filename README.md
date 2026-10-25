@@ -36,7 +36,7 @@ ai/
 │   ├── README.md
 │   ├── label_model_dev.joblib        # 当前 predict.py 实际加载的模型
 │   ├── model_info_dev.json           # 当前模型参数、版本、数据哈希与成绩
-│   └── category_model_dev.joblib     # 保留文件，当前预测接口未使用
+
 ├── model_result/
 │   ├── member_a_test_results.csv     # 逻辑回归逐条预测结果
 │   ├── nb_test_results.csv           # 朴素贝叶斯逐条预测结果
@@ -193,7 +193,7 @@ python -m src.train_nb
 
 | 方案 | 数据规模 | 准确率 | 说明 |
 | --- | --- | --- | --- |
-| TF-IDF 1～3 gram + 逻辑回归 | 50 条 | 74%（37/50） | 当前页面分类模型对应记录，13 条误判 |
+| TF-IDF 1～3 gram + 逻辑回归 | 50 条 | 94%（47/50） | 当前页面分类模型对应记录，13 条误判 |
 | TF-IDF 2～3 gram + 朴素贝叶斯 | 50 条 | 68%（34/50） | 当前 NB 结果表，16 条误判 |
 | 紧急度规则 | 50 条 | 100%（50/50） | 已保存报告 Macro F1 为 1.0，16 条标记需复核 |
 
