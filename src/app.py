@@ -118,6 +118,7 @@ with tab_student:
         else:
             try:
                 result = analyze(content)
+                summary = result["summary"]
                 label = result["label"]
                 urgency = result["urgency"]
                 department = result["department"]
@@ -134,7 +135,16 @@ with tab_student:
                     ("#EEF2F7", "#64748B"),
                 )
 
-                col_category, col_urgency, col_department = st.columns(3)
+                col_summary, col_category, col_urgency, col_department = st.columns(4)
+
+                with col_summary:
+                    show_result_card(
+                        "🍣",
+                        "摘要",
+                        summary,
+                        "#E8F0FF",
+                        "#EB2546",
+                    )
 
                 with col_category:
                     show_result_card(
@@ -166,7 +176,7 @@ with tab_student:
                     st.error(f"错误：{result['error']}")
 
                 # 追加写入csv
-                new_row = pd.DataFrame({"content": [content], "label": [label], "urgency": [urgency], "department": [department]})
+                new_row = pd.DataFrame({"summary": [summary], "label": [label], "urgency": [urgency], "department": [department]})
                 new_row.to_csv("data/history.csv", mode="a", header=False, index=False, encoding="utf-8-sig")
 
             except Exception as e:

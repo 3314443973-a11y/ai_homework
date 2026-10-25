@@ -7,6 +7,7 @@
 from predict import predict_label
 from urgency import get_urgency
 from department import get_department
+from summary_2 import summarize
 
 
 def analyze(text: str) -> dict:
@@ -16,8 +17,24 @@ def analyze(text: str) -> dict:
     urgency = get_urgency(text)
     # 3.调用B的接口分析部门
     department = get_department(label)
+    # 4.调用D的接口分析摘要
+    info = summarize(text)
+
+    # 将提取结果组合成文字
+    parts = [
+        info["location"],
+        info["problem"],
+        info["time"],
+    ]
+
+    if info["request"]:
+        parts.append("希望" + info["request"])
+
+    # 过滤空字段；全部为空时显示原文
+    summary = ",".join(part for part in parts if part) or text.strip()
 
     return {
+        "summary": summary,
         "label": label,
         "urgency": urgency,
         "department": department,
