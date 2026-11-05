@@ -1,6 +1,6 @@
 # 模型文件
 
-仓库包含可直接用于联调的 `label_model_dev.joblib` 和 `model_info_dev.json`。安装根目录 `requirements.txt` 中的依赖后，即可通过 `from src.predict import predict_label` 调用。需要重新生成时，在仓库根目录运行 `python -m src.train`。
+仓库包含可直接用于联调的 `label_model_dev.joblib` 和 `model_info_dev.json`。安装根目录 `requirements.txt` 中的依赖后，即可通过 `from src.predict_copy import predict_label` 调用。需要重新生成时，在仓库根目录运行 `python -m src.train`。
 
 `label_model_dev.joblib` 是使用训练文件全部 340 条数据生成的**开发版**模型，供成员 C 联调。`model_info_dev.json` 记录软件版本及当前 50 条测试数据上的结果（47/50）。两者均纳入这次交付，使队友下载代码后无需先训练。模型仍可从仓库内的训练脚本和数据重新生成。
 
