@@ -37,12 +37,15 @@ st.markdown(
         font-weight: 700 !important; white-space: nowrap; }
     [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) { background: #ffffff25; }
     [data-testid="stSidebar"] [data-testid="stRadio"] label:hover { background: #ffffff18; }
-    .st-key-content_panel { position: relative; box-sizing: border-box; width: 100%;
+    .st-key-content_panel { --chart-height: 360px; position: relative; box-sizing: border-box; width: 100%;
         height: auto !important; min-height: calc(100vh - 72px); padding: 24px clamp(14px, 2.5vw, 40px) 36px;
         background: #f5f5f5; border: 1px solid #d5d5d5; border-radius: 20px; }
     .st-key-content_panel [data-testid="stVerticalBlock"] { height: auto; }
     .st-key-content_panel [data-testid="stColumn"] { min-width: 0; }
     .st-key-content_panel [data-testid="stPlotlyChart"] { background: transparent; }
+    .st-key-content_panel [data-testid="stElementContainer"]:has([data-testid="stPlotlyChart"]) {
+        height: var(--chart-height); zoom: var(--chart-scale, 1);
+    }
     h1, h2, h3, p, [data-testid="stMetricValue"], [data-testid="stMetricLabel"] { color: #111; }
     [data-testid="stTextArea"] textarea { background: #ffe3e2; color: #111; border-radius: 16px; padding: 22px; }
     [data-testid="stTextArea"] [data-baseweb="textarea"] { background: #ffe3e2; border: none; border-radius: 16px; }
@@ -70,24 +73,119 @@ st.markdown(
     .history-wrap .history-table tbody tr:hover td { background: #ffac94; }
     .urgency-tag { border-radius: 6px; padding: 4px 12px; white-space: nowrap; color: #111; background: #ffe5b5; }
     .urgency-high { background: #ffc5bd; } .urgency-low { background: #d9ecdf; }
-    .feedback-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-        gap: clamp(16px, 2vw, 32px); margin: 24px 0; width: 100%; }
-    .feedback-card { box-sizing: border-box; min-width: 0; background: white;
+    .st-key-feedback_grid { margin: 24px 0; }
+    .st-key-feedback_grid [data-testid="stHorizontalBlock"] { gap: clamp(16px, 2vw, 32px); }
+    .st-key-feedback_card, .st-key-feedback_emails { box-sizing: border-box; min-width: 0; background: white;
         border-radius: 18px; padding: clamp(18px, 2vw, 30px); }
-    .feedback-card p { font-size: clamp(16px, 1.3vw, 20px); line-height: 1.8; }
-    .feedback-labels { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 40px; }
-    .feedback-labels span { background: #ffe3dc; border: 2px solid #e76e51; border-radius: 14px;
+    .st-key-feedback_card p { font-size: clamp(16px, 1.3vw, 20px); line-height: 1.8; }
+    .st-key-feedback_buttons button { background: #ffe3dc; border: 2px solid #e76e51; border-radius: 14px;
         padding: 5px 18px; white-space: nowrap; }
-    .feedback-emails { background: #ff7400; display: flex; flex-direction: column; justify-content: space-around; gap: 24px; }
-    .feedback-emails p { color: white; margin: 0; font-size: clamp(14px, 1.2vw, 18px); overflow-wrap: anywhere; }
-    @media(max-width: 640px) {
-        .st-key-content_panel [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
-        .st-key-content_panel [data-testid="stColumn"] { flex: 1 1 100% !important; width: 100% !important; }
+    .st-key-feedback_buttons button:hover { background: #ffd2c6; }
+    .st-key-feedback_buttons button p { font-size: inherit; line-height: inherit; }
+    .st-key-feedback_emails { background: #ff7400; }
+    .st-key-feedback_emails p { color: white; margin: 0 0 20px;
+        font-size: clamp(14px, 1.2vw, 18px); overflow-wrap: anywhere; }
+    .st-key-feedback_emails p:last-child { margin-bottom: 0; }
+    @media (max-width: 900px) {
+        .stApp { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+        /* Keep the sidebar in the same row as the panel on narrow screens. */
+        [data-testid="stAppViewContainer"] > :has(> [data-testid="stMain"]) {
+            flex: 1 1 0; min-width: 0;
+        }
+        [data-testid="stAppViewContainer"] [data-testid="stMain"] {
+            position: relative; width: 100%; height: 100%; min-width: 0;
+        }
+        [data-testid="stSidebar"] { flex: 0 0 17vw; box-shadow: none; transition: none; }
+        [data-testid="stSidebarContent"] { padding: clamp(34px, 7vw, 54px) 0 0; }
+        [data-testid="stSidebarUserContent"] {
+            box-sizing: border-box; width: 100%; padding: 0 clamp(3px, 1vw, 10px) !important;
+        }
+        [data-testid="stSidebar"] h1 {
+            font-size: clamp(12px, 3.8vw, 28px) !important; text-align: center; white-space: nowrap;
+        }
+        [data-testid="stSidebar"] [data-testid="stRadio"] { padding-top: clamp(4px, 2vw, 22px); }
+        [data-testid="stSidebar"] [data-testid="stRadio"],
+        [data-testid="stSidebar"] [data-testid="stRadioGroup"],
+        [data-testid="stSidebar"] [data-testid="stRadioGroup"] > div { width: 100%; }
+        [data-testid="stSidebar"] [data-testid="stRadio"] [data-testid="stRadioOption"] {
+            display: flex; align-items: center; justify-content: center; width: 100% !important;
+            min-height: 44px; margin: clamp(4px, 3.4vw, 28px) 0 !important; padding: 4px 0;
+            border-radius: clamp(6px, 1.5vw, 12px);
+        }
+        [data-testid="stSidebar"] [data-testid="stRadioOption"] > div {
+            display: flex; align-items: center; justify-content: center; gap: 2px; min-width: 0; padding: 0;
+        }
+        [data-testid="stSidebar"] [data-testid="stRadioOption"] > div > div:first-child {
+            width: 8px; height: 8px; flex: 0 0 8px; margin: 0;
+        }
+        [data-testid="stSidebar"] [data-testid="stRadio"] :is(label, label p, label span) {
+            font-size: clamp(11px, 2.4vw, 21px) !important;
+        }
+        [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:focus-visible) {
+            outline: 2px solid white; outline-offset: -2px;
+        }
+        .stMainBlockContainer {
+            width: min(80vw, 100%) !important; max-width: 100% !important;
+            margin-top: clamp(36px, 6vw, 50px) !important;
+        }
+        .st-key-content_panel {
+            --compact-gap: clamp(6px, 1.6vw, 16px);
+            --input-height: clamp(136px, 32vw, 220px);
+            --chart-height: clamp(156px, 34vw, 300px);
+            min-height: calc(100svh - 66px); gap: var(--compact-gap);
+            padding: clamp(8px, 2.2vw, 24px) clamp(8px, 2.5vw, 24px) clamp(14px, 3vw, 30px);
+            border-radius: clamp(10px, 2vw, 18px);
+        }
+        .st-key-content_panel [data-testid="stVerticalBlock"] { gap: var(--compact-gap); }
+        .st-key-content_panel [data-testid="stHorizontalBlock"] { flex-wrap: nowrap; gap: var(--compact-gap); }
+        .st-key-content_panel [data-testid="stColumn"] { flex: 1 1 0 !important; width: auto !important; }
+        .st-key-content_panel h2 { font-size: clamp(15px, 3.55vw, 32px); }
+        .st-key-content_panel h3 { font-size: clamp(16px, 3.2vw, 28px); }
+        .school-mark, .school-mark img { height: clamp(29px, 7vw, 56px); }
+        .school-mark img { width: clamp(29px, 7vw, 56px); }
+        .st-key-content_panel [data-testid="stElementContainer"]:has(> [data-testid="stTextArea"]) {
+            height: var(--input-height) !important;
+        }
+        [data-testid="stTextAreaRootElement"] { height: 100% !important; }
+        [data-testid="stTextArea"] textarea {
+            height: calc(var(--input-height) - 2px) !important; resize: none;
+            padding: clamp(10px, 2.4vw, 22px); font-size: 16px; border-radius: 12px;
+        }
+        .st-key-content_panel button[kind="primary"] { border-radius: clamp(9px, 2vw, 15px); }
+        .result-card { padding: clamp(6px, 1.5vw, 14px) 3px; border-radius: clamp(8px, 1.8vw, 17px); min-height: clamp(106px, 19vw, 172px); }
+        .result-icon { width: clamp(24px, 5.5vw, 48px); height: clamp(24px, 5.5vw, 48px);
+            font-size: clamp(13px, 2.8vw, 24px); margin-bottom: clamp(4px, 1vw, 10px); }
+        .result-label { font-size: clamp(10px, 2vw, 14px); margin-bottom: 4px; }
+        .result-value { font-size: clamp(11px, 2.6vw, 21px); }
+        [data-testid="stMetricLabel"] p { font-size: clamp(11px, 2.4vw, 14px); }
+        [data-testid="stMetricValue"] { font-size: clamp(21px, 4.4vw, 32px); }
+        .history-wrap { height: clamp(172px, 43vw, 360px); }
+        .history-wrap table.history-table { min-width: 270px; border-spacing: 0 5px !important; }
+        .history-wrap .history-table :is(th, td) { padding: 7px 5px; font-size: clamp(10px, 2.2vw, 14px); }
+        .urgency-tag { padding: 3px 5px; }
+        .st-key-feedback_grid { margin: var(--compact-gap) 0; }
+        .st-key-feedback_grid [data-testid="stHorizontalBlock"] { gap: var(--compact-gap); }
+        .st-key-feedback_card, .st-key-feedback_emails {
+            padding: clamp(7px, 2vw, 18px); border-radius: clamp(9px, 2vw, 18px);
+        }
+        .st-key-feedback_card p { font-size: clamp(12px, 2.55vw, 16px); }
+        .st-key-content_panel .st-key-feedback_buttons { flex-wrap: wrap; gap: 4px; }
+        .st-key-feedback_buttons button { padding: 3px 5px; min-height: 44px; font-size: clamp(10px, 2.2vw, 14px); }
+        .st-key-feedback_emails p { margin-bottom: clamp(8px, 2.4vw, 20px); font-size: clamp(11px, 2.35vw, 16px); }
     }
-    @media(max-height: 500px) {
+    @media (max-width: 480px) {
+        /* Plotly's minimum drawing width is 150px, larger than a phone column. */
+        .st-key-content_panel { --chart-height: 174px; --chart-scale: .9; }
+        .st-key-content_panel [data-testid="stPlotlyChart"] .svg-container { margin-inline: auto; }
+    }
+    @media (max-width: 380px) {
+        [data-testid="stSidebar"] [data-testid="stRadioOption"] > div > div:first-child { display: none; }
+        .st-key-content_panel { --chart-height: 208px; --chart-scale: .75; }
+    }
+    @media (max-height: 500px) {
         [data-testid="stSidebarContent"] { padding-top: 0; }
         [data-testid="stSidebar"] [data-testid="stRadio"] { padding-top: 0; }
-        [data-testid="stSidebar"] [data-testid="stRadio"] label { margin: 6px 0 !important; padding: 8px 4px; }
+        [data-testid="stSidebar"] [data-testid="stRadio"] [data-testid="stRadioOption"] { margin: 6px 0 !important; }
     }
     </style>
     """,
@@ -117,6 +215,12 @@ def show_result_card(icon, title, value, background, color):
         """,
         unsafe_allow_html=True,
     )
+
+
+@st.dialog("已反馈给开发人员", width="small")
+def show_feedback_confirmation():
+    if st.button("确定", key="close_feedback_confirmation", type="primary"):
+        st.rerun()
 
 
 # One real Streamlit container owns every page element, including charts and feedback.
@@ -262,13 +366,13 @@ with st.container(key="content_panel"):
             )
             for figure in (fig1, fig2):
                 figure.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#111111", height=360, margin=dict(l=20, r=20, t=50, b=30)
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#111111", margin=dict(l=20, r=20, t=50, b=30)
                 )
             fig1.update_layout(showlegend=False)
             with chart_left:
-                st.plotly_chart(fig1, width="stretch", theme=None)
+                st.plotly_chart(fig1, width="stretch", height="stretch", theme=None)
             with chart_right:
-                st.plotly_chart(fig2, width="stretch", theme=None)
+                st.plotly_chart(fig2, width="stretch", height="stretch", theme=None)
 
             st.divider()
             st.subheader("原始诉求数据表")
@@ -297,19 +401,20 @@ with st.container(key="content_panel"):
             st.info("暂无诉求数据,提交诉求后图标会自动生成")
 
     elif page == "意见反馈":
-        # Static display only: no links, navigation, or submission actions.
-        st.markdown(
-            """
-        <div class="feedback-grid">
-          <div class="feedback-card">
-            <p>以下是我们的意见反馈邮箱<br>遇到任何使用上的问题<br>可以选取任意一个邮箱反馈给我们<br>您是否满意我们的服务?</p>
-            <div class="feedback-labels"><span>满意</span><span>很满意</span><span>非常满意</span></div>
-          </div>
-          <div class="feedback-card feedback-emails">
-            <p>2026202830@ruc.edu.cn</p><p>2026202831@ruc.edu.cn</p>
-            <p>2026202832@ruc.edu.cn</p><p>2026202834@ruc.edu.cn</p>
-          </div>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
+        with st.container(key="feedback_grid"):
+            feedback, emails = st.columns(2)
+            with feedback, st.container(key="feedback_card"):
+                st.markdown(
+                    "以下是我们的意见反馈邮箱  \n遇到任何使用上的问题  \n"
+                    "可以选取任意一个邮箱反馈给我们  \n您是否满意我们的服务?"
+                )
+                with st.container(key="feedback_buttons", horizontal=True, gap="small"):
+                    for label in ("满意", "很满意", "非常满意"):
+                        if st.button(label):
+                            show_feedback_confirmation()
+            with emails, st.container(key="feedback_emails"):
+                st.markdown(
+                    "<p>2026202830@ruc.edu.cn</p><p>2026202831@ruc.edu.cn</p>"
+                    "<p>2026202832@ruc.edu.cn</p><p>2026202834@ruc.edu.cn</p>",
+                    unsafe_allow_html=True,
+                )
