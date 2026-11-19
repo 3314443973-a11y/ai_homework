@@ -9,7 +9,8 @@ AI 期中作业项目：对学生提交的校园诉求进行文本分类，结�
 ```text
 ai/
 ├── README.md
-├── requirements.txt                  # 页面、分类模型和离线实验依赖
+├── requirements.txt                  # 页面运行和模型加载依赖
+├── requirements-experiments.txt      # 离线训练与实验依赖
 ├── .gitignore
 ├── app.py                            # Streamlit 页面入口 -C
 ├── src/
@@ -76,7 +77,13 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-此命令一次安装分类模型、Streamlit 页面、绘图、中文分词及 TensorFlow 训练实验所需的依赖。模型依赖版本与 `models/model_info_dev.json` 中的记录一致。
+此命令安装分类模型和 Streamlit 页面所需的依赖。Streamlit Community Cloud 读取此清单，模型依赖版本与 `models/model_info_dev.json` 中的记录一致。
+
+运行离线实验、评估图表、中文分词或 TensorFlow 训练时，可用 Python 3.13 安装完整依赖：
+
+```bash
+python -m pip install -r requirements-experiments.txt
+```
 
 ### 3. 启动页面
 

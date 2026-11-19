@@ -1,6 +1,6 @@
-# Python 3.13 recommended. Python 3.11 also resolves on Windows x64.
+# Streamlit Community Cloud runtime. Python 3.13 recommended for local use.
 
-# Data processing, training, and saved model loading
+# Data processing and saved model loading
 pandas==3.0.6
 scikit-learn==1.9.1
 joblib==1.6.0
@@ -10,8 +10,3 @@ scipy==1.17.1
 # Streamlit app and dashboard charts
 streamlit==1.65.0
 plotly==7.1.0
-
-# Offline experiments, evaluation charts, and Chinese segmentation
-matplotlib==3.11.2
-jieba==0.42.1
-tensorflow==2.21.0

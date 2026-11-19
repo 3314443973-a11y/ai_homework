@@ -1,0 +1,5 @@
+# Offline training, evaluation charts, and Chinese segmentation
+-r requirements.txt
+matplotlib==3.11.2
+jieba==0.42.1
+tensorflow==2.21.0
