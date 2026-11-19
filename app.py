@@ -2,7 +2,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from analyze import analyze
+from src.analyze import analyze
 from html import escape
 from base64 import b64encode
 

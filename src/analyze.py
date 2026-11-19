@@ -4,10 +4,10 @@
 输出字典:「分类label,紧急程度urgency,处理部门department」
 """
 
-from predict import predict_label
-from urgency import get_urgency
-from department import get_department
-from summary_2 import summarize
+from .department import get_department
+from .predict import predict_label
+from .summary_2 import summarize
+from .urgency import get_urgency
 
 
 def analyze(text: str) -> dict:

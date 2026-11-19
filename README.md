@@ -9,11 +9,11 @@ AI 期中作业项目：对学生提交的校园诉求进行文本分类，结�
 ```text
 ai/
 ├── README.md
-├── requirements.txt                  # 当前核心模型依赖（页面与实验依赖需另装）
+├── requirements.txt                  # 页面、分类模型和离线实验依赖
 ├── .gitignore
+├── app.py                            # Streamlit 页面入口 -C
 ├── src/
 │   ├── __init__.py
-│   ├── app.py                        # Streamlit 页面入口 -C
 │   ├── analyze.py                    # 组合分类、紧急度和部门结果 -C
 │   ├── predict.py                    # predict_label(text) 分类接口 -C
 │   ├── train.py                      # TF-IDF + Logistic Regression 训练与评估 -A
@@ -55,7 +55,7 @@ ai/
 
 ## 安装与启动
 
-以下命令均在 **ai 仓库根目录** 执行。当前模型元数据记录的训练环境为 Python **3.13.13**；旧交接说明中的 Python 3.11.16 与当前模型记录不同。
+以下命令均在 **ai 仓库根目录** 执行。建议使用 Python **3.13** 创建虚拟环境，Windows x64 下也已验证 Python **3.11** 可解析整份依赖清单。
 
 ### 1. 创建并激活虚拟环境
 
@@ -74,24 +74,17 @@ source .venv/bin/activate
 
 ```bash
 python -m pip install -r requirements.txt
-python -m pip install streamlit plotly
 ```
 
-`requirements.txt` 当前仅包含 pandas、scikit-learn、joblib、numpy 和 scipy；第二条命令补充页面依赖。运行朴素贝叶斯或特征对照实验时，还需安装：
-
-```bash
-python -m pip install matplotlib jieba
-```
-
-模型元数据中的 numpy / scipy 版本与当前依赖清单不同。若加载模型出现兼容性问题，可在目标环境执行下文训练命令，重新生成模型。已有 `.venv` 若失效，应使用本机可用的 Python 重新创建环境。
+此命令一次安装分类模型、Streamlit 页面、绘图、中文分词及 TensorFlow 训练实验所需的依赖。模型依赖版本与 `models/model_info_dev.json` 中的记录一致。
 
 ### 3. 启动页面
 
 ```bash
-python -m streamlit run src/app.py
+python -m streamlit run app.py
 ```
 
-打开终端显示的本地地址即可使用。当前入口为 `src/app.py`，无需创建 `main.py`。
+打开终端显示的本地地址即可使用。
 
 - **学生端**：输入不超过 200 字的诉求，点击“提交并分析”，查看类别、紧急度和负责部门。
 - **管理员端**：读取 `data/history.csv` 并展示统计图表与记录。
@@ -121,16 +114,17 @@ print(label)
 
 ### 统一分析
 
-`src/analyze.py` 当前使用同目录绝对导入。Streamlit 入口可直接调用；从仓库根目录进行命令行联调时可使用：
+从仓库根目录验证统一分析接口：
 
 ```bash
-python -c "import sys; sys.path.insert(0, 'src'); from analyze import analyze; print(analyze('宿舍空调不制冷'))"
+python -c "from src.analyze import analyze; print(analyze('宿舍空调不制冷'))"
 ```
 
 成功时返回以下结构（类别以实际模型预测为准）：
 
 ```python
 {
+    "summary": "宿舍,空调故障",
     "label": "宿舍设施",
     "urgency": "中",
     "department": "慧湖物业中心",
@@ -138,7 +132,7 @@ python -c "import sys; sys.path.insert(0, 'src'); from analyze import analyze; p
 }
 ```
 
-当前 `analyze(text)` 不捕获异常，失败由调用方处理；`error` 字段仅在成功时返回 `None`。目标约定 [rules/analyze_contract.md](rules/analyze_contract.md) 中的 `summary` 尚未实现，当前接口也未返回置信度。
+`analyze(text)` 成功时返回 `error: None`，失败时抛出异常，由调用方处理。
 
 ### 紧急度与部门
 
@@ -230,6 +224,6 @@ python -m unittest discover -s rules -p "test_rules.py"
 | C | `train_nb.py`、`analyze.py`、`app.py` 与页面集成 |
 | D | 按团队分工继续补充评估、误判分析与摘要功能；当前未见独立摘要实现 |
 
-后续重点：补齐并统一依赖版本；统一实验路径与模型记录；完善历史文件初始化、异常处理与页面统计刷新；实现摘要并对齐接口约定；将需人工复核的结果展示给管理员。
+后续重点：统一实验路径与模型记录，完善历史文件初始化、异常处理与页面统计刷新，实现摘要并对齐接口约定，将需人工复核的结果展示给管理员。
 
 各成员通过分支和 Pull Request 合并代码。新增依赖同步维护 `requirements.txt`，公共字段统一使用 `label`。`.gitignore` 当前忽略 `*.joblib`、`*.docx` 等文件，首次克隆时应确认模型是否随仓库提供；缺少当前模型时运行 `python -m src.train` 生成。
