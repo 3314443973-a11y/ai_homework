@@ -16,26 +16,19 @@ import scipy
 import sklearn
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
-from sklearn.pipeline import Pipeline
 import tensorflow as tf
-from tensorflow.keras import Input
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
-from sklearn.datasets import make_blobs
 import logging
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
 tf.autograph.set_verbosity(0)
 
 
 
-# 统一使用 label 命名；路径以本文件为基准，与终端当前目录无关。
+# 路径以本文件为基准，与终端当前目录无关。
 ROOT = Path(__file__).resolve().parents[1]
 TRAIN_CSV = ROOT / "data" / "project" / "train_250.csv"
-TRAIN_CSV2 = ROOT / "data" / "project" / "targeted_label_candidates_30(1).csv"
-TRAIN_CSV3=ROOT/"data"/"project"/"error_data_diverse_30_complete(1).csv"
-TRAIN_CSV4=ROOT/"data"/"long_text_51_formatted.csv"
 TEST_CSV = ROOT / "data" / "project" / "test_50.csv"
 MODEL_DIR = ROOT / "models"
 MODEL_PATH = MODEL_DIR / "label_model_dev22.joblib"
@@ -45,7 +38,7 @@ LABELS = ("宿舍设施", "校园网络", "食堂餐饮", "教学设施", "校�
 REQUIRED_COLUMNS = ("text", "label", "urgency", "department")
 
 
-#制作模型的组装函数
+#制作一个文本处理器把字符转换成向量
 def voctor() :
     return(TfidfVectorizer(analyzer="char", ngram_range=(1, 3)))
 
@@ -57,10 +50,7 @@ def load_training_data() -> tuple[pd.Series, pd.Series, str]:
     if not TRAIN_CSV.is_file():
         raise FileNotFoundError(f"找不到项目训练数据：{TRAIN_CSV}")
     frame1 = pd.read_csv(TRAIN_CSV, encoding="utf-8-sig", dtype=str, keep_default_na=False)
-    frame2 = pd.read_csv(TRAIN_CSV2, encoding="utf-8-sig", dtype=str, keep_default_na=False)
-    frame3 = pd.read_csv(TRAIN_CSV3, encoding="utf-8-sig", dtype=str, keep_default_na=False)
-    frame4 = pd.read_csv(TRAIN_CSV4, encoding="utf-8-sig", dtype=str, keep_default_na=False)
-    frame=pd.concat([frame1,frame2,frame3,frame4],ignore_index=True)
+    frame=pd.concat([frame1],ignore_index=True)
     missing = [column for column in REQUIRED_COLUMNS if column not in frame.columns]
     if missing:
         raise ValueError(f"训练文件缺少字段：{missing}")
@@ -105,14 +95,9 @@ def main() -> None:
 
 
     label_to_id = {label: i for i, label in enumerate(LABELS)}
-    
-        # 防止未识别的类别被映射成空值
-    invalid_labels = train_labels[~train_labels.isin(LABELS)]
-    if not invalid_labels.empty:
-            raise ValueError(f"训练数据存在无效类别：{invalid_labels.unique().tolist()}")
-    
     train_label_ids = train_labels.map(label_to_id).to_numpy(dtype=np.int32)
 
+    #装配训练模型并保存模型数据
     model=Sequential(
     [
         Dense(500, activation = 'relu'),
@@ -169,7 +154,7 @@ def main() -> None:
 
         "training_source": [
             path.relative_to(ROOT).as_posix()
-            for path in (TRAIN_CSV, TRAIN_CSV2, TRAIN_CSV3, TRAIN_CSV4)
+            for path in (TRAIN_CSV, )
         ],
 
         "test_result_path": RESULT_PATH.relative_to(ROOT).as_posix(),

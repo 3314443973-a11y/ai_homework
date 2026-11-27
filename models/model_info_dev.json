@@ -3,7 +3,7 @@
   "model_file": "models/label_model_dev.joblib",
   "output_field": "label",
   "training_source": "data/project/train_250.csv,error_data_diverse_30_complete(1).csv,low_urgency_candidates_30.csv",
-  "candidate_training_rows": 340,
+  "candidate_training_rows": 391,
   "test_source": "data/project/test_50.csv",
   "test_result_path": "model_result/member_a_test_results.csv",
   "test_result": {

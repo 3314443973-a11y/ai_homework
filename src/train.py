@@ -25,7 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 TRAIN_CSV = ROOT / "data" / "project" / "train_250.csv"
 TRAIN_CSV2 = ROOT / "data" / "project" / "targeted_label_candidates_30(1).csv"
 TRAIN_CSV3=ROOT/"data"/"project"/"error_data_diverse_30_complete(1).csv"
-TRAIN_CSV4=ROOT/"data"/"project"/"targeted_label_candidates_30(1).csv"
+TRAIN_CSV4=ROOT/"data"/"long_text_51_formatted.csv"
+TRAIN_CSV5=ROOT/"data"/"project"/"low_urgency_candidates_30.csv"
 TEST_CSV = ROOT / "data" / "project" / "test_50.csv"
 MODEL_DIR = ROOT / "models"
 MODEL_PATH = MODEL_DIR / "label_model_dev.joblib"
@@ -52,7 +53,8 @@ def load_training_data() -> tuple[pd.Series, pd.Series, str]:
     frame2 = pd.read_csv(TRAIN_CSV2, encoding="utf-8-sig", dtype=str, keep_default_na=False)
     frame3 = pd.read_csv(TRAIN_CSV3, encoding="utf-8-sig", dtype=str, keep_default_na=False)
     frame4 = pd.read_csv(TRAIN_CSV4, encoding="utf-8-sig", dtype=str, keep_default_na=False)
-    frame=pd.concat([frame1,frame2,frame3,frame4],ignore_index=True)
+    frame5 = pd.read_csv(TRAIN_CSV5, encoding="utf-8-sig", dtype=str, keep_default_na=False)
+    frame=pd.concat([frame1,frame2,frame3,frame4,frame5],ignore_index=True)
     missing = [column for column in REQUIRED_COLUMNS if column not in frame.columns]
     if missing:
         raise ValueError(f"训练文件缺少字段：{missing}")
