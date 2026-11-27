@@ -14,11 +14,15 @@ ai/
 ├── .gitignore
 ├── app.py                            # Streamlit 页面入口 -C
 ├── src/
-│   ├── __init__.py
+│   ├── __init__.py                     #模型初始化
 │   ├── analyze.py                    # 组合分类、紧急度和部门结果 -C
-│   ├── predict.py                    # predict_label(text) 分类接口 -C
+│   ├── predict.py                    # predict_label(text) 分类接口 -A
+│   ├── predict_copy.py                # 中间测试模型时MLP模型接口 -A
 │   ├── train.py                      # TF-IDF + Logistic Regression 训练与评估 -A
+│   ├── train_copy.py                      # MLP模型训练训练与评估 -A
 │   ├── train_nb.py                   # MultinomialNB 对照实验 -C
+│   ├── summary_1.py                  # 初代摘要实现，经测试舍弃 -D
+│   ├── summary_2.py                  # 最终摘要实现 -D
 │   ├── urgency.py                    # 紧急度规则及解释 -B
 │   ├── department.py                 # 类别到部门的固定映射 -B
 │   ├── evaluate_urgency.py            # 紧急度规则评估 -B
@@ -34,21 +38,29 @@ ai/
 │       ├── train_250.csv             # 250 条训练数据
 │       └── test_50.csv               # 50 条测试数据
 │       └── long_text_51.csv          # 51 条长文本数据 -B
-├── models/
+├── models/   #全部来自A
 │   ├── README.md
 │   ├── label_model_dev.joblib        # 当前 predict.py 实际加载的模型
 │   ├── model_info_dev.json           # 当前模型参数、版本、数据哈希与成绩
-
+│   ├── model_info_dev22.json         # MLP模型参数、版本、数据哈希与成绩
+│   ├── label_model_dev22.joblib      # MLP模型predict_copy.py 实际加载的模型
 ├── model_result/
-│   ├── member_a_test_results.csv     # 逻辑回归逐条预测结果
+│   ├── member_a_test_results.csv     # 逻辑回归逐条预测结果 -A
 │   ├── nb_test_results.csv           # 朴素贝叶斯逐条预测结果
 │   ├── predictions.csv
 │   ├── 分词对紧急度影响测试结果说明.md
 │   └── urgency_results/              # 已保存的规则评估报告与逐条结果
+├── summary/
+│   ├── README.md                     # 摘要模块文件说明 -D
+│   ├── analyze_summary_patterns.py   # 分析词组和字频，生成频率表，辅助摘要规则编写 -D
+│   ├── evaluate_summary.py           # 初代摘要评估脚本，保存评估结果 -D
+│   ├── summary_evaluation_results.csv # 初代摘要评估结果 -D
+│   ├── summary_phrase_frequency.csv  # 词组频率统计 -D
+│   ├── summary_word_frequency.csv    # 字频统计 -D
+│   └── test_summary.py               # 初代摘要小测试集 -D
 ├── rules/
 │   ├── analyze_contract.md           # 目标接口约定
 │   ├── label_guide.md                # 标注规范
-│   └── test_rules.py                 # 紧急度与部门映射回归测试
 ├── verify_environment.py             # 根目录保留的旧环境自检脚本
 ├── summary.json                      # 根目录保留的紧急度评估汇总
 └── confusion_matrix.csv              # 根目录保留的混淆矩阵
