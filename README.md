@@ -36,7 +36,8 @@ ai/
 │   └── project/
 │       ├── README.md                 # 历史交接说明
 │       ├── train_250.csv             # 250 条训练数据
-│       └── test_50.csv               # 50 条测试数据
+│       └── test_50.csv               # 50 条交叉验证集数据
+│       └── test_50_ultimate.csv      # 50 条测试数据
 │       └── long_text_51.csv          # 51 条长文本数据 -B
 ├── models/   #全部来自A
 │   ├── README.md
