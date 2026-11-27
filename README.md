@@ -62,6 +62,8 @@ ai/
 ├── rules/
 │   ├── analyze_contract.md           # 目标接口约定
 │   ├── label_guide.md                # 标注规范
+├── requirements.txt                  # 需要环境
+├── requirements-experiments          # 测试实验环境
 ├── verify_environment.py             # 根目录保留的旧环境自检脚本
 ├── summary.json                      # 根目录保留的紧急度评估汇总
 └── confusion_matrix.csv              # 根目录保留的混淆矩阵
